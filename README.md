@@ -1,146 +1,108 @@
+-- Script Completo com UI para ativar/desativar a Tool de Empurrar
+
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
 
 local player = game.Players.LocalPlayer
-local char = player.Character or player.CharacterAdded:Wait()
-local hrp = char:FindFirstChild("HumanoidRootPart")
-local flying = false
-local bodyGyro, bodyVelocity
-local isMinimized = false
 
--- Criando GUI Exploit
+-- Criar a Tool
+local tool = Instance.new("Tool")
+tool.Name = "PushTool"
+tool.RequiresHandle = true
+tool.Parent = player.Backpack
+
+-- Criar o Handle da Tool
+local handle = Instance.new("Part")
+handle.Name = "Handle"
+handle.Size = Vector3.new(1, 5, 1)
+handle.Position = player.Character.HumanoidRootPart.Position
+handle.Anchored = false
+handle.CanCollide = false
+handle.Parent = tool
+handle.BrickColor = BrickColor.new("Bright blue")
+
+-- Função para empurrar jogadores
+local function pushPlayersInRange()
+    local hrp = player.Character:WaitForChild("HumanoidRootPart")
+    local range = 10  -- Defina o alcance do empurrão
+
+    for _, targetPlayer in pairs(game.Players:GetPlayers()) do
+        if targetPlayer ~= player and targetPlayer.Character then
+            local targetHRP = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if targetHRP then
+                local distance = (hrp.Position - targetHRP.Position).Magnitude
+                if distance <= range then
+                    local direction = (targetHRP.Position - hrp.Position).unit
+                    targetHRP.Velocity = direction * 50  -- Aplica o empurrão
+                end
+            end
+        end
+    end
+end
+
+-- UI para ativar/desativar o empurrão
 local screenGui = Instance.new("ScreenGui")
-screenGui.Parent = game.CoreGui
+screenGui.Parent = player.PlayerGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 220, 0, 250)  -- Corrigido o tamanho da Frame
-frame.Position = UDim2.new(0.8, 0, 0.2, 0)
+frame.Size = UDim2.new(0, 200, 0, 100)
+frame.Position = UDim2.new(0.8, 0, 0.1, 0)
 frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 frame.Parent = screenGui
-frame.Active = true  -- Tornando a frame interativa
-frame.Draggable = true  -- Permitindo arrastar a frame
+frame.Active = true
+frame.Draggable = true
 
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 30)
-title.Text = "☄️ Super Push Parts V1"
+title.Text = "☄️ PushTool Control"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 title.Parent = frame
 
-local pushStatus = Instance.new("TextLabel")
-pushStatus.Size = UDim2.new(1, 0, 0, 30)
-pushStatus.Position = UDim2.new(0, 0, 0, 30)
-pushStatus.Text = "Push: OFF"
-pushStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
-pushStatus.BackgroundTransparency = 1
-pushStatus.Parent = frame
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(1, 0, 0, 30)
+statusLabel.Position = UDim2.new(0, 0, 0, 30)
+statusLabel.Text = "Empurrar: Desligado"
+statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Parent = frame
 
-local rangeLabel = Instance.new("TextLabel")
-rangeLabel.Size = UDim2.new(1, 0, 0, 30)
-rangeLabel.Position = UDim2.new(0, 0, 0, 60)
-rangeLabel.Text = "Alcance: 15"
-rangeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-rangeLabel.BackgroundTransparency = 1
-rangeLabel.Parent = frame
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(1, 0, 0, 30)
+toggleButton.Position = UDim2.new(0, 0, 0, 60)
+toggleButton.Text = "Ativar Empurrar"
+toggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.Parent = frame
 
--- Barra de alcance
-local slider = Instance.new("Slider")
-slider.Size = UDim2.new(0.9, 0, 0, 30)
-slider.Position = UDim2.new(0.05, 0, 0, 100)
-slider.MinValue = 5
-slider.MaxValue = 50
-slider.Value = 15
-slider.Parent = frame
+local isPushing = false
 
--- Função para criar os botões
-local function createButton(name, pos, callback)
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(0.9, 0, 0, 30)
-    button.Position = UDim2.new(0.05, 0, 0, pos)
-    button.Text = name
-    button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    button.Parent = frame
-    button.MouseButton1Click:Connect(callback)
-end
-
--- Função para empurrar as partes
-local pushing = false
-local function pushParts()
-    while pushing do
-        local range = slider.Value
-        for _, part in pairs(workspace:GetDescendants()) do
-            if part:IsA("BasePart") and not part.Anchored then
-                local distance = (part.Position - hrp.Position).Magnitude
-                if distance <= range then
-                    local direction = (part.Position - hrp.Position).unit  -- Direção do empurrão
-                    part.Velocity = direction * 50  -- Empurrando a part sem fazer girar
-                end
-            end
-        end
-        wait(0.1)
+-- Função para ativar/desativar o empurrão
+local function togglePush()
+    isPushing = not isPushing
+    if isPushing then
+        statusLabel.Text = "Empurrar: Ligado"
+        toggleButton.Text = "Desativar Empurrar"
+    else
+        statusLabel.Text = "Empurrar: Desligado"
+        toggleButton.Text = "Ativar Empurrar"
     end
 end
 
--- Função para ativar/desativar o Fly
-local function toggleFlyButton(button)
-    if flying then
-        -- Desativa o fly
-        flying = false
-        if bodyGyro then bodyGyro:Destroy() end
-        if bodyVelocity then bodyVelocity:Destroy() end
-        hrp.Anchored = false
-        button.Text = "Fly: X"  -- Exibe X quando desativado
-    else
-        -- Ativa o fly
-        flying = true
-        bodyGyro = Instance.new("BodyGyro", hrp)
-        bodyGyro.MaxTorque = Vector3.new(400000, 400000, 400000)
-        bodyGyro.CFrame = hrp.CFrame
-        bodyVelocity = Instance.new("BodyVelocity", hrp)
-        bodyVelocity.MaxForce = Vector3.new(400000, 400000, 400000)
-        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-        hrp.Anchored = true
-        button.Text = "Fly: ✓"  -- Exibe ✓ quando ativado
-    end
-end
+toggleButton.MouseButton1Click:Connect(togglePush)
 
--- Função para minimizar a UI
-local function toggleMinimize()
-    isMinimized = not isMinimized
-    if isMinimized then
-        frame.Size = UDim2.new(0, 220, 0, 30)  -- Tamanho reduzido
-        title.Text = "☄️ Super Push V1"  -- Título minimizado
-    else
-        frame.Size = UDim2.new(0, 220, 0, 250)  -- Tamanho normal
-        title.Text = "☄️ Super Push Parts V1"  -- Título completo
-    end
-end
-
--- Ativar/Desativar Push
-createButton("Ativar Push", 140, function()
-    pushing = not pushing
-    if pushing then
-        pushStatus.Text = "Push: ON"
-        pushParts()
-    else
-        pushStatus.Text = "Push: OFF"
+-- Função de ativação da Tool
+tool.Activated:Connect(function()
+    if isPushing then
+        pushPlayersInRange()
     end
 end)
 
--- Botão de Fly (✓ / X)
-createButton("Fly: X", 180, function()
-    toggleFlyButton(frame["Fly: X"])
-end)
-
--- Botão de Minimizar
-createButton("Minimizar", 220, toggleMinimize)
-
--- Enviar mensagem no chat corretamente
+-- Mensagem no Chat para informar que a Tool foi ativada
 game:GetService("StarterGui"):SetCore("ChatMakeSystemMessage", {
-    Text = "☄️ Super Push Parts V1 Ativado!";
-    Color = Color3.fromRGB(255, 165, 0);
-    Font = Enum.Font.SourceSansBold;
-    TextSize = 18;
+    Text = "☄️ PushTool ativada! Use a ferramenta para empurrar jogadores.",
+    Color = Color3.fromRGB(255, 165, 0),
+    Font = Enum.Font.SourceSansBold,
+    TextSize = 18,
 })
