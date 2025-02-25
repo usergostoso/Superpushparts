@@ -1,5 +1,3 @@
--- Script Completo com UI para ativar/desativar a Tool de Empurrar
-
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
@@ -34,7 +32,13 @@ local function pushPlayersInRange()
                 local distance = (hrp.Position - targetHRP.Position).Magnitude
                 if distance <= range then
                     local direction = (targetHRP.Position - hrp.Position).unit
-                    targetHRP.Velocity = direction * 50  -- Aplica o empurrão
+                    -- Criar e aplicar uma força para empurrar o jogador
+                    local bodyVelocity = Instance.new("BodyVelocity")
+                    bodyVelocity.MaxForce = Vector3.new(5000, 5000, 5000) -- Garantir que a força seja suficiente
+                    bodyVelocity.Velocity = direction * 50 -- Intensidade do empurrão
+                    bodyVelocity.Parent = targetHRP
+                    -- Remove o BodyVelocity após 0.1 segundos para não deixar ele preso
+                    game:GetService("Debris"):AddItem(bodyVelocity, 0.1)
                 end
             end
         end
