@@ -1,16 +1,9 @@
-if not game:IsLoaded() then
-    game.Loaded:Wait()
-end
-
 local player = game.Players.LocalPlayer
-
--- Criar a Tool
 local tool = Instance.new("Tool")
 tool.Name = "PushTool"
 tool.RequiresHandle = true
 tool.Parent = player.Backpack
 
--- Criar o Handle da Tool
 local handle = Instance.new("Part")
 handle.Name = "Handle"
 handle.Size = Vector3.new(1, 5, 1)
@@ -20,24 +13,21 @@ handle.CanCollide = false
 handle.Parent = tool
 handle.BrickColor = BrickColor.new("Bright blue")
 
--- Função para empurrar jogadores
 local function pushPlayersInRange()
     local hrp = player.Character:WaitForChild("HumanoidRootPart")
-    local range = 10  -- Defina o alcance do empurrão
-
+    local range = 10
     for _, targetPlayer in pairs(game.Players:GetPlayers()) do
         if targetPlayer ~= player and targetPlayer.Character then
             local targetHRP = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
             if targetHRP then
                 local distance = (hrp.Position - targetHRP.Position).Magnitude
                 if distance <= range then
+                    -- Aplica um fling instantâneo
                     local direction = (targetHRP.Position - hrp.Position).unit
-                    -- Criar e aplicar uma força para empurrar o jogador
                     local bodyVelocity = Instance.new("BodyVelocity")
-                    bodyVelocity.MaxForce = Vector3.new(5000, 5000, 5000) -- Garantir que a força seja suficiente
-                    bodyVelocity.Velocity = direction * 50 -- Intensidade do empurrão
+                    bodyVelocity.MaxForce = Vector3.new(10000, 10000, 10000)
+                    bodyVelocity.Velocity = direction * 200 -- Força de fling mais forte
                     bodyVelocity.Parent = targetHRP
-                    -- Remove o BodyVelocity após 0.1 segundos para não deixar ele preso
                     game:GetService("Debris"):AddItem(bodyVelocity, 0.1)
                 end
             end
@@ -45,7 +35,6 @@ local function pushPlayersInRange()
     end
 end
 
--- UI para ativar/desativar o empurrão
 local screenGui = Instance.new("ScreenGui")
 screenGui.Parent = player.PlayerGui
 
@@ -81,8 +70,6 @@ toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 toggleButton.Parent = frame
 
 local isPushing = false
-
--- Função para ativar/desativar o empurrão
 local function togglePush()
     isPushing = not isPushing
     if isPushing then
@@ -96,17 +83,8 @@ end
 
 toggleButton.MouseButton1Click:Connect(togglePush)
 
--- Função de ativação da Tool
 tool.Activated:Connect(function()
     if isPushing then
         pushPlayersInRange()
     end
 end)
-
--- Mensagem no Chat para informar que a Tool foi ativada
-game:GetService("StarterGui"):SetCore("ChatMakeSystemMessage", {
-    Text = "☄️ PushTool ativada! Use a ferramenta para empurrar jogadores.",
-    Color = Color3.fromRGB(255, 165, 0),
-    Font = Enum.Font.SourceSansBold,
-    TextSize = 18,
-})
