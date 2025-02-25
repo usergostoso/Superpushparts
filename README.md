@@ -14,7 +14,7 @@ local screenGui = Instance.new("ScreenGui")
 screenGui.Parent = game.CoreGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 220, 0, 300)  -- Aumentei o tamanho do frame para acomodar a barra e o fly
+frame.Size = UDim2.new(0, 220, 0, 250)  -- Corrigido o tamanho da Frame
 frame.Position = UDim2.new(0.8, 0, 0.2, 0)
 frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 frame.Parent = screenGui
@@ -113,7 +113,7 @@ local function toggleMinimize()
         frame.Size = UDim2.new(0, 220, 0, 30)  -- Tamanho reduzido
         title.Text = "☄️ Super Push V1"  -- Título minimizado
     else
-        frame.Size = UDim2.new(0, 220, 0, 300)  -- Tamanho normal
+        frame.Size = UDim2.new(0, 220, 0, 250)  -- Tamanho normal
         title.Text = "☄️ Super Push Parts V1"  -- Título completo
     end
 end
